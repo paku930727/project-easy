@@ -1,66 +1,145 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Laravel 10のDocker環境作成 (PHP8.1, Apache, MariaDB, Xdebug)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+このReadmeでは、LaravelのDocker環境を手軽に作成する手順を紹介します。以下のバージョンを使用します:
 
-## About Laravel
+    Laravel 10.0.0 (サーバー要件: PHP 8.1以上)
+    手元の作業PC: Apple M1 Pro
+    Docker: 20.10.21
+    イメージ: php:8.1-apache
+    イメージ: mariadb:10.3
+    イメージ: phpmyadmin:latest
+    イメージ: mailhog/mailhog:latest
+    PHP: 8.1
+    DB: MariaDB 10.3
+    Docker-compose: 2.13.0
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+ゴール
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+    http://localhost でデフォルトのトップページ(welcome.blade.php)の内容が表示されること
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+ディレクトリ構成
 
-## Learning Laravel
+scss
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+プロジェクトルート
+├── .vscode
+│    └── launch.json (VSCode エディタのデバッガー設定)
+├── www
+│    └── [laravel関連のもの]
+├── docker-compose.yml
+└── docker
+    ├── app
+    │    ├── apache2
+    │    │    ├── sites-available
+    │    │    │   └── 000-default.conf
+    │    │    └ apache2.conf
+    │    ├── php.ini
+    │    └── Dockerfile
+    ├── msmtp
+    │    └── msmtprc (メール送信のSMTP設定用)
+    └── mysql
+         ├── initdb (SQLの初期化用)
+         ├── storage (データのマウント用)
+         ├── Dockerfile
+         └── server.cnf
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+手順
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+以下の手順に従って進めてください。
 
-## Laravel Sponsors
+    Laravelをwwwディレクトリ以下にインストールします。
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+shell
 
-### Premium Partners
+$ docker-compose build
+$ docker-compose run --rm app composer create-project laravel/laravel:^10.0 .
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+    .envファイルを更新します。DBとSMTPの接続情報の環境変数を更新します。
 
-## Contributing
+makefile
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=test_db_name
+DB_USERNAME=test_user
+DB_PASSWORD=test_pass
 
-## Code of Conduct
+MAIL_MAILER=smtp
+MAIL_HOST=mailhog
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=null
+MAIL_FROM_NAME="${APP_NAME}"
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+    タイムゾーンとロケールを日本に変更します。
 
-## Security Vulnerabilities
+php
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+// www/config/app.php
 
-## License
+'timezone' => 'Asia/Tokyo',
+'locale' => 'ja',
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    ドキュメントルートをデフォルトのpublicからhtmlに変更します。
+
+shell
+
+$ mv www/public www/html
+
+    public_path()を上書きします。
+
+www/bootstrap/app.phpファイルに以下のコードを追記します
+
+php
+
+/*
+|--------------------------------------------------------------------------
+| Bind Important Interfaces
+|--------------------------------------------------------------------------
+|
+| Next, we need to bind some important interfaces into the container so
+| we will be able to resolve them when needed. The kernels serve the
+| incoming requests to this application from both the web and CLI.
+|
+*/
+// public_path()の設定 "/var/www/public"(デフォルト) => "/var/www/html"
+$app->usePublicPath(base_path('html'));
+
+これにより、public_path()関数が更新されます。
+
+    コンテナを起動します。
+
+shell
+
+$ docker-compose up -d
+
+    その他の初期セットアップを行います。
+
+shell
+
+$ docker-compose exec app bash
+# php artisan key:generate
+# php artisan storage:link
+(# ln -sf /var/www/storage/app/public /var/www/html/storage でもOK)
+# chmod -R 777 storage bootstrap/cache
+
+    ブラウザで以下の確認を行います。
+
+    確認1: http://localhost でデフォルトのトップページ(welcome.blade.php)が表示されること
+    確認2: phpmyadminにアクセスし、ログインできること
+    確認3: メール送信テストを行います。appコンテナにアクセスし、以下のスクリプトを実行します。
+
+shell
+
+$ docker-compose exec app bash
+root@f761b2f53458:/var/www# php -r "mail('test@example.com', 'テストタイトル', 'テスト本文', 'From: from@example.com');";
+
+メールの確認は、http://localhost:8025/ にアクセスして行います。
+
+    確認4: デバッガーの確認 (VSCodeをエディタで使っている人のみ)
+    例として、www/app/Providers/RouteServiceProvider.phpにブレークポイントを設定し、ページをリロードしてみます。ブレークポイントで停止することを確認します。
+
+これで、Laravel 10のDocker環境が作成されました。お疲れ様でした！
